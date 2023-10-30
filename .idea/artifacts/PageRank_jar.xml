@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="PageRank:jar">
-    <output-path>$PROJECT_DIR$/compiledJar</output-path>
+    <output-path>$PROJECT_DIR$/target</output-path>
     <root id="archive" name="PageRank.jar">
       <element id="module-output" name="PageRank" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/maven/maven-settings/2.0.9/maven-settings-2.0.9.jar" path-in-jar="/" />

@@ -17,6 +17,15 @@ import java.util.stream.Collectors;
 
 public class IdealizedPageRank {
     public static void main(String[] args) {
+        if (args.length < 3) {
+            System.err.println("Usage: IdealizedPageRank <inputLinksFile> <inputTitlesFile> <outputDirectory>");
+            System.exit(1);
+        }
+
+        String linksFile = args[0];
+        String titlesFile = args[1];
+        String outputDir = args[2];
+
         // Initialize Spark
         SparkConf conf = new SparkConf()
                 .setAppName("IdealizedPageRank");
@@ -24,7 +33,7 @@ public class IdealizedPageRank {
         JavaSparkContext sc = new JavaSparkContext(conf);
 
         // Load the data
-        JavaRDD<String> lines = sc.textFile("links-simple-sorted.txt");
+        JavaRDD<String> lines = sc.textFile(linksFile);
 
         // Parse the data to create the transition matrix
         JavaPairRDD<Integer, List<Integer>> transitionMatrix = lines.mapToPair(line -> {
@@ -97,7 +106,7 @@ public class IdealizedPageRank {
                 .sortByKey(false);
 
         // Load the page titles
-        JavaRDD<String> titles = sc.textFile("titles-sorted.txt");
+        JavaRDD<String> titles = sc.textFile(titlesFile);
 
         // Join the page titles with the final PageRank scores
         JavaPairRDD<Long, String> pageTitles = titles.zipWithIndex().mapToPair(tuple -> new Tuple2<>(tuple._2(), tuple._1()));
@@ -119,7 +128,7 @@ public class IdealizedPageRank {
         });
 
         // Save the sorted list of Wikipedia pages based on their PageRank value to a text file
-        joinedData.saveAsTextFile("output");
+        joinedData.saveAsTextFile(outputDir);
 
         // Stop Spark
         sc.stop();
