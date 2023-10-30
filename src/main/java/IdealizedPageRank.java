@@ -19,8 +19,8 @@ public class IdealizedPageRank {
     public static void main(String[] args) {
         // Initialize Spark
         SparkConf conf = new SparkConf()
-                .setAppName("IdealizedPageRank")
-                .setMaster("local[*]");
+                .setAppName("IdealizedPageRank");
+                //.setMaster("local[*]");
         JavaSparkContext sc = new JavaSparkContext(conf);
 
         // Load the data
