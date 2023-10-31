@@ -99,7 +99,8 @@ public class IdealizedPageRank {
             }
 
             // Sort the pages by PageRank in descending order
-            JavaPairRDD<Double, Long> sortedPageRanks = sc.parallelize(currentVector)
+            JavaPairRDD<Double, Long> sortedPageRanks;
+            sortedPageRanks = sc.parallelize(currentVector)
                     .zipWithIndex()
                     .mapToPair(tuple -> new Tuple2<>(tuple._1(), tuple._2()))
                     .sortByKey(false);
