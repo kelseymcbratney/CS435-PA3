@@ -43,14 +43,14 @@ public class TaxationPageRank {
             return new Tuple2<>(from, toPages);
         });
 
-        // Define the initial vector (equal probability for starting from any page)
+        // Define the initial vector
         int numPages = (int) transitionMatrix.keys().distinct().count();
         List<Double> initialVector = new ArrayList<>();
         for (int i = 0; i < numPages; i++) {
             initialVector.add(1.0 / numPages);
         }
 
-        // Define the teleportation probability (beta)
+        // Define the teleportation probability
         double beta = 0.85;
 
         // Define the number of iterations
@@ -80,7 +80,7 @@ public class TaxationPageRank {
                 return contribs.iterator();
             }).reduceByKey((Function2<Double, Double, Double>) Double::sum).mapValues(rank -> 0.15 + beta * rank);
 
-            // Check for convergence (you can use a threshold)
+            // Check for convergence
             boolean hasConverged = true;
             for (int i = 0; i < numPages; i++) {
                 Map<Integer, Double> nextVectorMap = nextVector.collectAsMap();
@@ -129,7 +129,7 @@ public class TaxationPageRank {
             }
         });
 
-        // Save the sorted list of Wikipedia pages based on their PageRank value to a text file
+        // Sorted list of Wikipedia pages based on their PageRank value to a text file
         joinedData.saveAsTextFile(outputDir);
 
         // Stop Spark

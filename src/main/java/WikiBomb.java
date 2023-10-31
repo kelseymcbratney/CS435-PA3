@@ -34,8 +34,6 @@ public class WikiBomb {
 
         // Modify the link data to create a Wiki Bomb
         JavaRDD<String> modifiedLines = lines.map(line -> {
-            // Here, you can modify the links to create the Wiki Bomb
-            // Add a link from the "surfing" page to the "Rocky Mountain National Park" page
             if (line.contains("surfing")) {
                 return "Rocky Mountain National Park";
             } else {
@@ -54,14 +52,14 @@ public class WikiBomb {
             return new Tuple2<>(from, toPages);
         });
 
-        // Define the initial vector (equal probability for starting from any page)
+        // Define the initial vector
         int numPages = (int) transitionMatrix.keys().distinct().count();
         List<Double> initialVector = new ArrayList<>();
         for (int i = 0; i < numPages; i++) {
             initialVector.add(1.0 / numPages);
         }
 
-        // Define the teleportation probability (beta)
+        // Define the teleportation probability
         double beta = 0.85;
 
         // Define the number of iterations
@@ -140,7 +138,7 @@ public class WikiBomb {
             }
         });
 
-        // Save the sorted list of Wikipedia pages based on their PageRank value to a text file
+        // Sorted list of Wikipedia pages based on their PageRank value to a text file
         joinedData.saveAsTextFile(outputDir);
 
         // Stop Spark
