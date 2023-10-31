@@ -132,7 +132,6 @@ public class WikiBomb {
                     Map<Long, String> titlesMap = pageTitleMapBroadcast.getValue();
                     String pageTitle = titlesMap.get(tuple._2());
 
-                    // Check if the pageTitle contains "surfing" and replace it with "Rocky Mountain National Park"
                     if (pageTitle != null && pageTitle.contains("surfing")) {
                         pageTitle = "Rocky_Mountain_National_Park";
                     }
@@ -141,8 +140,11 @@ public class WikiBomb {
                 }
             });
 
+            // Aggregate PageRank values for entries with the same title
+            JavaPairRDD<String, Double> aggregatedData = joinedData.reduceByKey((v1, v2) -> v1 + v2);
+
             // Sorted list of Wikipedia pages based on their PageRank value to a text file
-            joinedData.saveAsTextFile(outputDir);
+            aggregatedData.saveAsTextFile(outputDir);
 
             // Stop Spark
             sc.stop();
