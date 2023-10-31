@@ -134,7 +134,7 @@ public class WikiBomb {
 
                     // Check if the pageTitle contains "surfing" and replace it with "Rocky Mountain National Park"
                     if (pageTitle != null && pageTitle.contains("surfing")) {
-                        pageTitle = "Rocky Mountain National Park";
+                        pageTitle = "Rocky_Mountain_National_Park";
                     }
 
                     return new Tuple2<>(pageTitle, tuple._1());
