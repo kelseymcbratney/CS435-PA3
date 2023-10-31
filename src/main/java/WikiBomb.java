@@ -36,8 +36,8 @@ public class WikiBomb {
         JavaRDD<String> modifiedLines = lines.map(line -> {
             // Here, you can modify the links to create the Wiki Bomb
             // Add a link from the "surfing" page to the "Rocky Mountain National Park" page
-            if (line.startsWith("surfing:")) {
-                return line + " rocky_mountain_national_park"; // Replace with the actual link format
+            if (line.contains("surfing")) {
+                return "Rocky Mountain National Park";
             } else {
                 return line;
             }
