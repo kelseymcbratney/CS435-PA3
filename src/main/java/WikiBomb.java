@@ -30,20 +30,12 @@ public class WikiBomb {
         try (JavaSparkContext sc = new JavaSparkContext(conf)) {
 
             // Load the data
-            JavaRDD<String> lines = sc.textFile(linksFile);
+            JavaRDD<String> lines;
+            lines = sc.textFile(linksFile);
 
-            // Modify the link data to create a Wiki Bomb
-            JavaRDD<String> modifiedLines = lines.map(line -> {
-                if (line.contains("surfing")) {
-                    return "Rocky Mountain National Park";
-                } else {
-                    return line;
-                }
-            });
-
-            // Parse the modified data to create the transition matrix
+            // Parse the data to create the transition matrix
             JavaPairRDD<Integer, List<Integer>> transitionMatrix;
-            transitionMatrix = modifiedLines.mapToPair(line -> {
+            transitionMatrix = lines.mapToPair(line -> {
                 String[] parts = line.split(":");
                 int from = Integer.parseInt(parts[0].trim());
                 String[] toLinks = parts[1].trim().split(" ");
@@ -54,13 +46,12 @@ public class WikiBomb {
             });
 
             // Define the initial vector
-            int numPages;
-            numPages = (int) transitionMatrix.keys().distinct().count();
-            List<Double> initialVector;
-            initialVector = new ArrayList<>();
+            int numPages = (int) transitionMatrix.keys().distinct().count();
+            List<Double> initialVector = new ArrayList<>();
             for (int i = 0; i < numPages; i++) {
                 initialVector.add(1.0 / numPages);
             }
+
 
             // Define the teleportation probability
             double beta = 0.85;
@@ -140,6 +131,12 @@ public class WikiBomb {
                 public Tuple2<String, Double> call(Tuple2<Double, Long> tuple) {
                     Map<Long, String> titlesMap = pageTitleMapBroadcast.getValue();
                     String pageTitle = titlesMap.get(tuple._2());
+
+                    // Check if the pageTitle contains "surfing" and replace it with "Rocky Mountain National Park"
+                    if (pageTitle != null && pageTitle.contains("surfing")) {
+                        pageTitle = "Rocky Mountain National Park";
+                    }
+
                     return new Tuple2<>(pageTitle, tuple._1());
                 }
             });
