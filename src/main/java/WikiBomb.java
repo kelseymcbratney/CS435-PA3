@@ -156,8 +156,13 @@ public class WikiBomb {
             // Aggregate PageRank values for entries with the same title
             JavaPairRDD<String, Double> aggregatedData = joinedData.reduceByKey((v1, v2) -> v1 + v2);
 
-            // Sorted list of Wikipedia pages based on their PageRank value to a text file
-            aggregatedData.saveAsTextFile(outputDir);
+            // Sort the aggregatedData by PageRank in descending order
+            JavaPairRDD<String, Double> sortedData = aggregatedData.mapToPair(pair -> new Tuple2<>(pair._2(), pair._1()))
+                    .sortByKey(false)
+                    .mapToPair(pair -> new Tuple2<>(pair._2(), pair._1()));
+
+            // Save the sorted data to a text file in descending order of PageRank
+            sortedData.saveAsTextFile(outputDir);
 
             // Stop Spark
             sc.stop();
