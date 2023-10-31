@@ -33,6 +33,15 @@ public class WikiBomb {
             JavaRDD<String> lines;
             lines = sc.textFile(linksFile);
 
+            // Load the titles data
+            JavaRDD<String> titles = sc.textFile(titlesFile);
+
+            // Find titles containing "surfing" and save the line number to a list
+            List<Tuple2<String, Long>> surfingEntries = titles.zipWithIndex()
+                    .filter(tuple -> tuple._1().contains("surfing"))
+                    .map(tuple -> new Tuple2<>(tuple._1(), tuple._2()))
+                    .collect();
+
             // Parse the data to create the transition matrix
             JavaPairRDD<Integer, List<Integer>> transitionMatrix;
             transitionMatrix = lines.mapToPair(line -> {
@@ -44,6 +53,13 @@ public class WikiBomb {
                         .collect(Collectors.toList());
                 return new Tuple2<>(from, toPages);
             });
+
+            List<Integer> surfingEntryList = new ArrayList<>();
+            for (Tuple2<String, Long> entry : surfingEntries) {
+                surfingEntryList.add(entry._2().intValue());
+            }
+
+            transitionMatrix = transitionMatrix.union(sc.parallelizePairs(Arrays.asList(new Tuple2<>(1, surfingEntryList))));
 
             // Define the initial vector
             int numPages = (int) transitionMatrix.keys().distinct().count();
@@ -112,9 +128,6 @@ public class WikiBomb {
                     .zipWithIndex()
                     .mapToPair(tuple -> new Tuple2<>(tuple._1(), tuple._2()))
                     .sortByKey(false);
-
-            // Load the page titles
-            JavaRDD<String> titles = sc.textFile(titlesFile);
 
             // Join the page titles with the final PageRank scores
             JavaPairRDD<Long, String> pageTitles = titles.zipWithIndex().mapToPair(tuple -> new Tuple2<>(tuple._2(), tuple._1()));
