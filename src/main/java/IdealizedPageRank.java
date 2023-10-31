@@ -53,12 +53,12 @@ public class IdealizedPageRank {
             }
 
             // Define the number of iterations
-            int numIterations = 1;
+            int numIterations = 25;
 
             List<Double> currentVector = initialVector;
 
             // Perform Idealized PageRank iterations
-            for (int iteration = 0; true; iteration++) {
+            for (int iteration = 0; iteration < numIterations; iteration++) {
                 List<Double> finalCurrentVector = currentVector;
                 JavaPairRDD<Integer, Double> nextVector = transitionMatrix.flatMapToPair(s -> {
                     int from = s._1();

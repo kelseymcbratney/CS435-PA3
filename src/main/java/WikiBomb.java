@@ -66,12 +66,12 @@ public class WikiBomb {
             double beta = 0.85;
 
             // Define the number of iterations
-            int numIterations = 1;
+            int numIterations = 25;
 
             List<Double> currentVector = initialVector;
 
             // Perform Taxation PageRank iterations
-            for (int iteration = 0; true; iteration++) {
+            for (int iteration = 0; iteration < numIterations; iteration++) {
                 List<Double> finalCurrentVector;
                 finalCurrentVector = currentVector;
                 JavaPairRDD<Integer, Double> nextVector;
