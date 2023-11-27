@@ -6,6 +6,7 @@ import org.apache.spark.api.java.function.Function2;
 import scala.Tuple2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
+import java.text.DecimalFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +27,9 @@ public class TaxationPageRank {
 
         // Initialize Spark
         SparkConf conf = new SparkConf()
-                .setAppName("TaxationPageRank");
+                .setAppName("WikiBomb");
+                //.setMaster("local[*]");
+
         try (JavaSparkContext sc = new JavaSparkContext(conf)) {
 
             // Load the data
@@ -60,11 +63,10 @@ public class TaxationPageRank {
 
             List<Double> currentVector = initialVector;
 
-            // Perform Taxation PageRank iterations
+            // Perform Idealized PageRank iterations
             for (int iteration = 0; iteration < numIterations; iteration++) {
                 List<Double> finalCurrentVector = currentVector;
-                JavaPairRDD<Integer, Double> nextVector;
-                nextVector = transitionMatrix.flatMapToPair(s -> {
+                JavaPairRDD<Integer, Double> nextVector = transitionMatrix.flatMapToPair(s -> {
                     int from = s._1();
                     List<Integer> toPages = s._2();
                     double rank;
@@ -78,31 +80,12 @@ public class TaxationPageRank {
                     for (Integer toPage : toPages) {
                         contribs.add(new Tuple2<>(toPage, rank / linkCount));
                     }
-                    // Add teleportation probability
-                    contribs.add(new Tuple2<>(from, (1.0 - beta) / numPages));
                     return contribs.iterator();
-                }).reduceByKey((Function2<Double, Double, Double>) Double::sum).mapValues(rank -> 0.15 + beta * rank);
-
-                // Check for convergence
-                boolean hasConverged = true;
-                for (int i = 0; i < numPages; i++) {
-                    Map<Integer, Double> nextVectorMap = nextVector.collectAsMap();
-                    if (i >= 0 && i < currentVector.size() && nextVectorMap.containsKey(i + 1)) {
-                        double nextValue = nextVectorMap.get(i + 1);
-                        double currentValue = currentVector.get(i);
-                        if (Math.abs(nextValue - currentValue) > 0.0001) {
-                            hasConverged = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (hasConverged) {
-                    break;
-                }
+                }).reduceByKey((Function2<Double, Double, Double>) Double::sum).mapValues(rank -> (rank * beta) + (1 - beta) * (1 / numPages));
 
                 currentVector = nextVector.values().collect();
             }
+
 
             // Sort the pages by PageRank in descending order
             JavaPairRDD<Double, Long> sortedPageRanks;
@@ -124,12 +107,17 @@ public class TaxationPageRank {
             Broadcast<Map<Long, String>> pageTitleMapBroadcast = sc.broadcast(pageTitleMap);
 
             // Use the broadcast variable to retrieve page titles
-            JavaPairRDD<String, Double> joinedData = sortedPageRanks.mapToPair(new PairFunction<Tuple2<Double, Long>, String, Double>() {
+            JavaPairRDD<String, String> joinedData = sortedPageRanks.mapToPair(new PairFunction<Tuple2<Double, Long>, String, String>() {
                 @Override
-                public Tuple2<String, Double> call(Tuple2<Double, Long> tuple) {
+                public Tuple2<String, String> call(Tuple2<Double, Long> tuple) {
                     Map<Long, String> titlesMap = pageTitleMapBroadcast.getValue();
                     String pageTitle = titlesMap.get(tuple._2());
-                    return new Tuple2<>(pageTitle, tuple._1());
+
+                    // Format the double value to avoid scientific notation
+                    DecimalFormat decimalFormat = new DecimalFormat("#.####################");
+                    String formattedValue = decimalFormat.format(tuple._1());
+
+                    return new Tuple2<>(pageTitle, formattedValue);
                 }
             });
 
